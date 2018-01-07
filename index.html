@@ -1,18 +1,155 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html ng-app="todoApp">
   <head>
-       <base href="/">
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.6/angular.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/1.0.3/angular-ui-router.min.js"></script>
-     -->
-     <script src="/js/all.js"></script>
-     <script>
-     angular.module('todoApp', ['todoApp.main','todoApp.main2']);
-    </script>
-    <script src="/js/app.js"></script>
-    <script src="/js/controller.js"></script>
-     
-  <body ng-app="todoApp">
-        <ui-view></ui-view>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fingerprintjs2/1.5.1/fingerprint2.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-resource/1.6.8/angular-resource.min.js"></script>
+        <script src="//cdn.ckeditor.com/4.8.0/full/ckeditor.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ckeditor/1.0.3/angular-ckeditor.min.js"></script>
+    <script>
+        angular.module('todoApp', ['ngResource','ckeditor'])
+.run(function(){
+    new Fingerprint2().get(function(result, components){
+              localStorage.token=result;
+            });
+})
+.config(function ($httpProvider)  
+{  var testInterceptor = function ($q)  
+  {  
+      return {  
+          request: function (config)  
+          {  
+            if(config.method=="POST")
+           config.headers['csrf']= localStorage.token;
+             return config;
+          },  
+          requestError: function (rejection)  
+          {  
+              return $q.reject(rejection);  
+          },  
+          response: function (result)  
+          {  
+              return result;  
+          },  
+          responseError: function (response)  
+          {  
+              return $q.reject(response);  
+          }  
+      }  
+  } 
+    $httpProvider.interceptors.push(testInterceptor);  
+})
+.controller('TodoListController',['$resource',TodoListController]);
+  
+function TodoListController($resource) {
+  var todoList = this;
+      new Fingerprint2().get(function(result, components){
+              
+              todoList.token= localStorage.result;
+            });
+            
+   
+  
+  
+    todoList.addTodo = function() {
+      
+      var x= $resource('http://drbmca.eu5.org/index.php/api/save',null,{'query':  {method:'POST'}});
+      x.query(todoList.data).$promise.then(function(resp){
+    	console.log(resp);
+  		})
+    };
+  }
+        </script>
+        <style>
+        form_main {
+    width: 100%;
+}
+.form_main h4 {
+    font-family: roboto;
+    font-size: 20px;
+    font-weight: 300;
+    margin-bottom: 15px;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+.heading {
+    border-bottom: 1px solid #fcab0e;
+    padding-bottom: 9px;
+    position: relative;
+}
+.heading span {
+    background: #9e6600 none repeat scroll 0 0;
+    bottom: -2px;
+    height: 3px;
+    left: 0;
+    position: absolute;
+    width: 75px;
+}   
+.form {
+    border-radius: 7px;
+    padding: 6px;
+}
+.txt[type="text"] {
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    padding: 10px 0 10px 5px;
+    width: 100%;
+}
+.txt_3[type="text"] {
+    margin: 10px 0 0;
+    padding: 10px 0 10px 5px;
+    width: 100%;
+}
+.txt2[type="submit"] {
+    background: #242424 none repeat scroll 0 0;
+    border: 1px solid #4f5c04;
+    border-radius: 25px;
+    color: #fff;
+    font-size: 16px;
+    font-style: normal;
+    line-height: 35px;
+    margin: 10px 0;
+    padding: 0;
+    text-transform: uppercase;
+    width: 30%;
+}
+.txt2:hover {
+    background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
+    color: #5793ef;
+    transition: all 0.5s ease 0s;
+}
+
+    </style>
+  </head>
+
+  <body ng-controller="TodoListController as todoList">
+    <div class="container">
+    	<div class="row">
+        <div class="col-md-12">
+    		<div class="form_main">
+                    <h4 class="heading"><center>{{todoList.token}}</center></h4>
+                    <div class="form">
+                    <form ng-submit="todoList.addTodo()">
+                        <input type="text" required="" placeholder="URL" value="" name="name" class="txt" ng-model="todoList.data.url">
+                        <input type="text" required="" placeholder="expiry date" value="" name="mob" class="txt" ng-model="todoList.data.expDate">
+                        <input type="text" required="" placeholder="Active" value="" name="email" class="txt" ng-model="todoList.data.status">
+                        
+                    	 <textarea required="" placeholder="Your Message" name="mess" type="text" class="txt_3" ng-model="todoList.data.head"></textarea>
+                    	  <!--<div ckeditor="options" ng-model="todoList.data.head" ready="todoList.onReady()"></div>-->
+                    	 <!--<textarea required="" placeholder="Your Message" name="mess" type="text" class="txt_3" ng-model="todoList.data.body"></textarea>-->
+                    	 <div ckeditor="options" ng-model="todoList.data.body" ready="todoList.onReady()"></div>
+                    	 {{todoList.data.body}}
+                    	 <center>
+                         <input type="submit" value="submit" name="submit" class="txt2">
+                         </center>
+                    </form>
+                </div>
+                </div>
+                </div>
+    	</div>
+    </div>
   </body>
+
 </html>
